@@ -5,393 +5,202 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Our Little World</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #fafaf8;
-      --surface: #ffffff;
-      --surface2: #f4f3f0;
-      --border: rgba(0,0,0,0.1);
-      --border-strong: rgba(0,0,0,0.2);
-      --text: #1a1a18;
-      --text-muted: #6b6b67;
-      --text-faint: #a0a09c;
-      --accent: #c9b99a;
-      --accent-bg: #f7f2ea;
-      --success: #5a8a5a;
-      --success-bg: #edf5ed;
-      --radius-md: 10px;
-      --radius-lg: 14px;
-      --font: 'DM Sans', sans-serif;
-      --font-serif: 'DM Serif Display', serif;
+      --bg: #fafaf8; --surface: #ffffff; --surface2: #f4f3f0;
+      --border: rgba(0,0,0,0.1); --border-strong: rgba(0,0,0,0.2);
+      --text: #1a1a18; --text-muted: #6b6b67; --text-faint: #a0a09c;
+      --accent: #c9b99a; --accent-bg: #f7f2ea;
+      --success: #5a8a5a; --success-bg: #edf5ed;
+      --radius-md: 10px; --radius-lg: 14px;
+      --font: 'DM Sans', sans-serif; --font-serif: 'DM Serif Display', serif;
     }
-
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #141412;
-        --surface: #1e1e1b;
-        --surface2: #272724;
-        --border: rgba(255,255,255,0.09);
-        --border-strong: rgba(255,255,255,0.18);
-        --text: #f0ede8;
-        --text-muted: #9a9892;
-        --text-faint: #636360;
-        --accent: #b8a485;
-        --accent-bg: #2a2520;
-        --success: #7aaa7a;
-        --success-bg: #1a2a1a;
+        --bg: #141412; --surface: #1e1e1b; --surface2: #272724;
+        --border: rgba(255,255,255,0.09); --border-strong: rgba(255,255,255,0.18);
+        --text: #f0ede8; --text-muted: #9a9892; --text-faint: #636360;
+        --accent: #b8a485; --accent-bg: #2a2520;
+        --success: #7aaa7a; --success-bg: #1a2a1a;
       }
     }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
 
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      font-size: 15px;
-      line-height: 1.6;
+    /* LOGIN */
+    #login-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;
     }
+    .login-box {
+      background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem; max-width: 360px; width: 100%; text-align: center;
+    }
+    .login-box h1 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 6px; }
+    .login-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 2rem; }
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 11px 16px;
+      border: 0.5px solid var(--border-strong); border-radius: var(--radius-md);
+      background: var(--surface2); color: var(--text); font-size: 14px;
+      font-family: var(--font); cursor: pointer; transition: background 0.15s;
+    }
+    .google-btn:hover { background: var(--accent-bg); }
+    .google-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .login-error { margin-top: 1rem; font-size: 12px; color: #c0392b; display: none; }
 
-    .app {
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 2.5rem 1.25rem 4rem;
-    }
-
-    /* Header */
-    .header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-      padding-bottom: 2rem;
-      border-bottom: 0.5px solid var(--border);
-    }
-    .header h1 {
-      font-family: var(--font-serif);
-      font-size: 32px;
-      font-weight: 400;
-      color: var(--text);
-      letter-spacing: -0.3px;
-    }
-    .header p {
-      font-size: 13px;
-      color: var(--text-faint);
-      margin-top: 5px;
-    }
-    .header .date-chip {
-      display: inline-block;
-      margin-top: 12px;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: var(--surface2);
-      padding: 4px 12px;
-      border-radius: 99px;
+    /* APP */
+    #app-screen { display: none; }
+    .app { max-width: 700px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    .header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 0.5px solid var(--border); }
+    .header h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 400; }
+    .header p { font-size: 13px; color: var(--text-faint); margin-top: 5px; }
+    .header-meta { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .date-chip, .user-chip {
+      display: inline-block; font-size: 12px; color: var(--text-muted);
+      background: var(--surface2); padding: 4px 12px; border-radius: 99px;
       border: 0.5px solid var(--border);
     }
+    .logout-btn {
+      font-size: 12px; color: var(--text-faint); background: none; border: none;
+      cursor: pointer; padding: 4px 8px; font-family: var(--font);
+    }
+    .logout-btn:hover { color: var(--text-muted); }
 
-    /* Nav */
-    .nav {
-      display: flex;
-      gap: 4px;
-      background: var(--surface2);
-      border-radius: var(--radius-lg);
-      padding: 4px;
-      margin-bottom: 2rem;
-      border: 0.5px solid var(--border);
-    }
-    .nav-btn {
-      flex: 1;
-      padding: 9px 8px;
-      border: none;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 13px;
-      font-family: var(--font);
-      cursor: pointer;
-      transition: all 0.18s;
-    }
-    .nav-btn.active {
-      background: var(--surface);
-      color: var(--text);
-      font-weight: 500;
-      border: 0.5px solid var(--border-strong);
-    }
+    .nav { display: flex; gap: 4px; background: var(--surface2); border-radius: var(--radius-lg); padding: 4px; margin-bottom: 2rem; border: 0.5px solid var(--border); }
+    .nav-btn { flex: 1; padding: 9px 8px; border: none; border-radius: 10px; background: transparent; color: var(--text-muted); font-size: 13px; font-family: var(--font); cursor: pointer; transition: all 0.18s; }
+    .nav-btn.active { background: var(--surface); color: var(--text); font-weight: 500; border: 0.5px solid var(--border-strong); }
 
-    /* Sections */
     .section { display: none; }
     .section.active { display: block; }
 
-    /* Cards */
-    .card {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.1rem 1.25rem;
-      margin-bottom: 1rem;
-    }
-    .card-label {
-      font-size: 11px;
-      color: var(--text-faint);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 10px;
-    }
+    .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+    .card-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
 
-    /* Mood section */
-    .mood-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 1rem;
-    }
-    @media (max-width: 480px) {
-      .mood-grid { grid-template-columns: 1fr; }
-    }
-    .partner-name {
-      background: transparent;
-      border: none;
-      font-size: 15px;
-      font-weight: 500;
-      font-family: var(--font);
-      color: var(--text);
-      width: 100%;
-      margin-bottom: 12px;
-      outline: none;
-      border-bottom: 0.5px solid transparent;
-      transition: border-color 0.15s;
-      padding-bottom: 2px;
-    }
-    .partner-name:focus { border-bottom-color: var(--accent); }
+    .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+    @media (max-width: 480px) { .mood-grid { grid-template-columns: 1fr; } }
 
-    .mood-emojis {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
+    .partner-label { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 12px; }
+    .you-badge {
+      display: inline-block; font-size: 10px; color: var(--accent); background: var(--accent-bg);
+      border: 0.5px solid var(--accent); border-radius: 99px; padding: 1px 8px; margin-left: 6px; font-weight: 400;
     }
+    .mood-emojis { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
     .mood-emojis button {
-      width: 36px;
-      height: 36px;
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface2);
-      font-size: 17px;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 36px; height: 36px; border: 0.5px solid var(--border); border-radius: 8px;
+      background: var(--surface2); font-size: 17px; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
     }
     .mood-emojis button:hover { border-color: var(--accent); }
-    .mood-emojis button.selected {
-      border: 1.5px solid var(--accent);
-      background: var(--accent-bg);
-    }
+    .mood-emojis button.selected { border: 1.5px solid var(--accent); background: var(--accent-bg); }
+    .mood-emojis button:disabled { opacity: 0.4; cursor: default; }
+
     .text-input {
-      width: 100%;
-      font-size: 13px;
-      font-family: var(--font);
-      color: var(--text);
-      background: var(--surface2);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 8px 11px;
-      outline: none;
-      transition: border-color 0.15s;
+      width: 100%; font-size: 13px; font-family: var(--font); color: var(--text);
+      background: var(--surface2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); padding: 8px 11px; outline: none; transition: border-color 0.15s;
     }
     .text-input:focus { border-color: var(--accent); }
-    textarea.text-input {
-      min-height: 80px;
-      resize: vertical;
-      line-height: 1.6;
-      font-size: 14px;
-    }
+    textarea.text-input { min-height: 80px; resize: vertical; line-height: 1.6; font-size: 14px; }
 
     .save-btn {
-      width: 100%;
-      padding: 11px;
-      border: 0.5px solid var(--border-strong);
-      border-radius: var(--radius-md);
-      background: transparent;
-      color: var(--text);
-      font-size: 14px;
-      font-family: var(--font);
-      cursor: pointer;
-      transition: background 0.15s;
-      margin-top: 4px;
+      width: 100%; padding: 11px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-md);
+      background: transparent; color: var(--text); font-size: 14px; font-family: var(--font);
+      cursor: pointer; transition: background 0.15s; margin-top: 4px;
     }
     .save-btn:hover { background: var(--surface2); }
-    .save-btn:active { opacity: 0.7; }
+    .save-btn:disabled { opacity: 0.5; cursor: default; }
 
-    /* History */
     .history-section { margin-top: 1.75rem; }
-    .history-section h3 {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-faint);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 10px;
-    }
-    .history-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 0.5px solid var(--border);
-    }
+    .history-section h3 { font-size: 12px; font-weight: 500; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+    .history-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 0.5px solid var(--border); }
     .history-row .h-day { min-width: 60px; font-size: 12px; color: var(--text-faint); }
     .history-row .h-moods { font-size: 18px; display: flex; gap: 4px; }
     .history-row .h-note { font-size: 12px; color: var(--text-muted); }
 
-    /* Journal */
-    .past-entry {
-      border-left: 1.5px solid var(--accent);
-      padding: 6px 0 6px 14px;
-      margin-bottom: 14px;
-    }
+    .past-entry { border-left: 1.5px solid var(--accent); padding: 6px 0 6px 14px; margin-bottom: 14px; }
     .past-entry .e-date { font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
     .past-entry .e-text { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
-    .past-entry .e-improve {
-      font-size: 12px;
-      color: var(--text-faint);
-      margin-top: 4px;
-      font-style: italic;
-    }
+    .past-entry .e-improve { font-size: 12px; color: var(--text-faint); margin-top: 4px; font-style: italic; }
 
-    /* Milestones */
     .milestone-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: border-color 0.15s;
+      display: flex; align-items: flex-start; gap: 12px; background: var(--surface);
+      border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px;
+      margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s;
     }
     .milestone-item:hover { border-color: var(--border-strong); }
     .milestone-item.done { opacity: 0.6; }
     .m-check {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 1.5px solid var(--border-strong);
-      flex-shrink: 0;
-      margin-top: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      color: var(--success);
-      transition: all 0.15s;
+      width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border-strong);
+      flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--success); transition: all 0.15s;
     }
-    .milestone-item.done .m-check {
-      background: var(--success-bg);
-      border-color: var(--success);
-    }
+    .milestone-item.done .m-check { background: var(--success-bg); border-color: var(--success); }
     .m-text { font-size: 14px; color: var(--text); }
-    .milestone-item.done .m-text {
-      text-decoration: line-through;
-      color: var(--text-muted);
-    }
-    .add-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 6px;
-    }
+    .milestone-item.done .m-text { text-decoration: line-through; color: var(--text-muted); }
+    .add-row { display: flex; gap: 8px; margin-top: 6px; }
     .add-row input { flex: 1; }
     .add-row button {
-      padding: 9px 18px;
-      border: 0.5px solid var(--border-strong);
-      border-radius: var(--radius-md);
-      background: transparent;
-      color: var(--text);
-      font-size: 13px;
-      font-family: var(--font);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.15s;
+      padding: 9px 18px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-md);
+      background: transparent; color: var(--text); font-size: 13px; font-family: var(--font);
+      cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .add-row button:hover { background: var(--surface2); }
 
-    /* Love notes */
-    .note-card {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 14px 16px;
-      margin-bottom: 10px;
-    }
-    .note-from {
-      font-size: 11px;
-      color: var(--text-faint);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 7px;
-    }
-    .note-body {
-      font-family: var(--font-serif);
-      font-size: 15px;
-      color: var(--text);
-      line-height: 1.75;
-    }
+    .note-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; }
+    .note-from { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
+    .note-body { font-family: var(--font-serif); font-size: 15px; color: var(--text); line-height: 1.75; }
     .note-time { font-size: 11px; color: var(--text-faint); margin-top: 9px; }
-    .sender-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .sender-row span { font-size: 12px; color: var(--text-muted); }
-    .from-btn {
-      padding: 6px 14px;
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 12px;
-      font-family: var(--font);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .from-btn.active {
-      background: var(--accent-bg);
-      border-color: var(--accent);
-      color: var(--text);
-      font-weight: 500;
-    }
     .send-btn {
-      margin-left: auto;
-      padding: 7px 18px;
-      border: 0.5px solid var(--border-strong);
-      border-radius: var(--radius-md);
-      background: transparent;
-      color: var(--text);
-      font-size: 13px;
-      font-family: var(--font);
-      cursor: pointer;
-      transition: background 0.15s;
+      padding: 10px 20px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-md);
+      background: transparent; color: var(--text); font-size: 13px; font-family: var(--font);
+      cursor: pointer; transition: background 0.15s; margin-top: 10px; float: right;
     }
     .send-btn:hover { background: var(--surface2); }
-    .empty-state {
-      text-align: center;
-      padding: 2.5rem 1rem;
-      font-size: 13px;
-      color: var(--text-faint);
+    .send-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .empty-state { text-align: center; padding: 2.5rem 1rem; font-size: 13px; color: var(--text-faint); }
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: var(--bg); padding: 10px 20px;
+      border-radius: 99px; font-size: 13px; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; white-space: nowrap; z-index: 999;
     }
+    .toast.show { opacity: 1; }
+    .loading { text-align: center; padding: 3rem; font-size: 13px; color: var(--text-faint); }
   </style>
 </head>
 <body>
-  <div class="app">
 
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>our little world</h1>
+    <p>a quiet space for Ambika & Anuja</p>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+    <div class="login-error" id="login-error">Only Ambika & Anuja can access this space.</div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="app">
     <div class="header">
       <h1>our little world</h1>
       <p>a quiet space for the two of you</p>
-      <div class="date-chip" id="today-date"></div>
+      <div class="header-meta">
+        <span class="date-chip" id="today-date"></span>
+        <span class="user-chip" id="user-chip"></span>
+        <button class="logout-btn" onclick="signOut()">sign out</button>
+      </div>
     </div>
 
     <nav class="nav">
@@ -404,34 +213,32 @@
     <!-- MOOD -->
     <div id="mood" class="section active">
       <div class="mood-grid">
-        <div class="card">
-          <div class="card-label">Partner 1</div>
-          <input class="partner-name" id="name1" type="text" value="You" placeholder="Your name" />
-          <div class="mood-emojis" id="moods1">
-            <button onclick="selectMood(1,'😊')">😊</button>
-            <button onclick="selectMood(1,'😌')">😌</button>
-            <button onclick="selectMood(1,'😔')">😔</button>
-            <button onclick="selectMood(1,'😤')">😤</button>
-            <button onclick="selectMood(1,'🥰')">🥰</button>
-            <button onclick="selectMood(1,'😴')">😴</button>
+        <div class="card" id="mood-card-ambika">
+          <div class="partner-label">Ambika <span class="you-badge" id="ambika-you" style="display:none">you</span></div>
+          <div class="mood-emojis" id="moods-ambika">
+            <button onclick="selectMood('ambika','😊')">😊</button>
+            <button onclick="selectMood('ambika','😌')">😌</button>
+            <button onclick="selectMood('ambika','😔')">😔</button>
+            <button onclick="selectMood('ambika','😤')">😤</button>
+            <button onclick="selectMood('ambika','🥰')">🥰</button>
+            <button onclick="selectMood('ambika','😴')">😴</button>
           </div>
-          <input class="text-input" id="note1" type="text" placeholder="One word about today..." />
+          <input class="text-input" id="note-ambika" type="text" placeholder="One word about today..." />
         </div>
-        <div class="card">
-          <div class="card-label">Partner 2</div>
-          <input class="partner-name" id="name2" type="text" value="Partner" placeholder="Partner's name" />
-          <div class="mood-emojis" id="moods2">
-            <button onclick="selectMood(2,'😊')">😊</button>
-            <button onclick="selectMood(2,'😌')">😌</button>
-            <button onclick="selectMood(2,'😔')">😔</button>
-            <button onclick="selectMood(2,'😤')">😤</button>
-            <button onclick="selectMood(2,'🥰')">🥰</button>
-            <button onclick="selectMood(2,'😴')">😴</button>
+        <div class="card" id="mood-card-anuja">
+          <div class="partner-label">Anuja <span class="you-badge" id="anuja-you" style="display:none">you</span></div>
+          <div class="mood-emojis" id="moods-anuja">
+            <button onclick="selectMood('anuja','😊')">😊</button>
+            <button onclick="selectMood('anuja','😌')">😌</button>
+            <button onclick="selectMood('anuja','😔')">😔</button>
+            <button onclick="selectMood('anuja','😤')">😤</button>
+            <button onclick="selectMood('anuja','🥰')">🥰</button>
+            <button onclick="selectMood('anuja','😴')">😴</button>
           </div>
-          <input class="text-input" id="note2" type="text" placeholder="One word about today..." />
+          <input class="text-input" id="note-anuja" type="text" placeholder="One word about today..." />
         </div>
       </div>
-      <button class="save-btn" onclick="saveMood()">Save today's mood</button>
+      <button class="save-btn" id="mood-save-btn" onclick="saveMood()">Save today's mood</button>
       <div class="history-section" id="mood-history"></div>
     </div>
 
@@ -461,192 +268,313 @@
     <!-- LOVE NOTES -->
     <div id="notes" class="section">
       <div class="card">
-        <div class="card-label">Write a love note</div>
+        <div class="card-label" id="note-to-label">To: —</div>
         <textarea class="text-input" id="note-text" placeholder="Something kind, appreciative, or just sweet..."></textarea>
-        <div class="sender-row">
-          <span>From:</span>
-          <button class="from-btn active" id="from-btn-1" onclick="setFrom(1)">You</button>
-          <button class="from-btn" id="from-btn-2" onclick="setFrom(2)">Partner</button>
-          <button class="send-btn" onclick="sendNote()">Send note</button>
+        <div style="overflow:hidden">
+          <button class="send-btn" id="send-note-btn" onclick="sendNote()">Send note ✉</button>
         </div>
       </div>
       <div id="notes-list"></div>
     </div>
-
   </div>
+</div>
 
-  <script>
-    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+<div class="toast" id="toast"></div>
 
-    function fmt(ts) {
-      const d = new Date(ts);
-      return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
-    }
+<script>
+  // =============================================
+  // CONFIGURATION — fill these in after Supabase setup
+  // =============================================
+  const SUPABASE_URL = 'https://dioxbtmvkonwgovpqdqx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpb3hidG12a29ud2dvdnBxZHF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2Nzg2MzcsImV4cCI6MjA5MDI1NDYzN30.7ZlAtTqpKvXWUNlTRwN4bcAB9V87eTfHaB-vNMXZKr0';
 
-    function load(key, def) {
-      try { return JSON.parse(localStorage.getItem(key)) || def; } catch(e) { return def; }
-    }
-    function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+  
+  const ALLOWED_EMAILS = ['ambikabanerjee17@gmail.com', 'anuja4220@gmail.com'];
+  const NAMES = {
+    'ambikabanerjee17@gmail.com': 'Ambika',
+    'anuja4220@gmail.com': 'Anuja'
+  };
+  const PARTNER_EMAIL = {
+    'ambikabanerjee17@gmail.com': 'anuja4220@gmail.com',
+    'anuja4220@gmail.com': 'ambikabanerjee17@gmail.com'
+  };
 
-    const state = {
-      moods: load('olw_moods', []),
-      journal: load('olw_journal', []),
-      milestones: load('olw_milestones', [
-        { id: 1, text: 'Have a weekly check-in conversation', done: false },
-        { id: 2, text: 'Try a new activity together', done: false },
-        { id: 3, text: 'Write down 3 things we appreciate about each other', done: false }
-      ]),
-      notes: load('olw_notes', []),
-      selected: { 1: null, 2: null },
-      noteFrom: 1
-    };
+  // =============================================
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    document.getElementById('today-date').textContent = fmt(Date.now());
+  let currentUser = null;
+  let currentName = '';
+  let selectedMood = { ambika: null, anuja: null };
 
-    function showTab(id, btn) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      btn.classList.add('active');
-    }
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmt(ts) {
+    const d = new Date(ts);
+    return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
+  }
 
-    function selectMood(p, emoji) {
-      state.selected[p] = emoji;
-      document.querySelectorAll('#moods' + p + ' button').forEach(b => {
-        b.classList.toggle('selected', b.textContent === emoji);
-      });
-    }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
 
-    function saveMood() {
-      const entry = {
-        ts: Date.now(),
-        name1: document.getElementById('name1').value || 'You',
-        name2: document.getElementById('name2').value || 'Partner',
-        mood1: state.selected[1] || '–',
-        mood2: state.selected[2] || '–',
-        note1: document.getElementById('note1').value,
-        note2: document.getElementById('note2').value
-      };
-      state.moods.unshift(entry);
-      if (state.moods.length > 30) state.moods = state.moods.slice(0, 30);
-      save('olw_moods', state.moods);
-      document.getElementById('note1').value = '';
-      document.getElementById('note2').value = '';
-      state.selected = { 1: null, 2: null };
-      document.querySelectorAll('.mood-emojis button').forEach(b => b.classList.remove('selected'));
-      renderMoods();
-    }
+  // AUTH
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.href }
+    });
+    if (error) showToast('Login failed. Try again.');
+  }
 
-    function renderMoods() {
-      const el = document.getElementById('mood-history');
-      if (!state.moods.length) { el.innerHTML = ''; return; }
-      el.innerHTML = '<h3>Recent days</h3>' + state.moods.slice(0, 10).map(e =>
-        `<div class="history-row">
-          <span class="h-day">${fmt(e.ts)}</span>
-          <span class="h-moods">${e.mood1}${e.mood2}</span>
-          <span class="h-note">${[e.note1, e.note2].filter(Boolean).join(' · ')}</span>
-        </div>`
-      ).join('');
-    }
+  async function signOut() {
+    await supabase.auth.signOut();
+    location.reload();
+  }
 
-    function saveJournal() {
-      const t = document.getElementById('journal-text').value.trim();
-      const i = document.getElementById('improve-text').value.trim();
-      if (!t && !i) return;
-      state.journal.unshift({ ts: Date.now(), thoughts: t, improve: i });
-      if (state.journal.length > 30) state.journal = state.journal.slice(0, 30);
-      save('olw_journal', state.journal);
-      document.getElementById('journal-text').value = '';
-      document.getElementById('improve-text').value = '';
-      renderJournal();
-    }
-
-    function renderJournal() {
-      const el = document.getElementById('journal-past');
-      if (!state.journal.length) { el.innerHTML = ''; return; }
-      el.innerHTML = '<h3>Past entries</h3>' + state.journal.slice(0, 8).map(e =>
-        `<div class="past-entry">
-          <div class="e-date">${fmt(e.ts)}</div>
-          ${e.thoughts ? `<div class="e-text">${e.thoughts}</div>` : ''}
-          ${e.improve ? `<div class="e-improve">To improve: ${e.improve}</div>` : ''}
-        </div>`
-      ).join('');
-    }
-
-    function addMilestone() {
-      const val = document.getElementById('milestone-input').value.trim();
-      if (!val) return;
-      state.milestones.push({ id: Date.now(), text: val, done: false });
-      save('olw_milestones', state.milestones);
-      document.getElementById('milestone-input').value = '';
-      renderMilestones();
-    }
-
-    function toggleMilestone(id) {
-      const m = state.milestones.find(m => m.id === id);
-      if (m) m.done = !m.done;
-      save('olw_milestones', state.milestones);
-      renderMilestones();
-    }
-
-    function renderMilestones() {
-      const el = document.getElementById('milestones-list');
-      if (!state.milestones.length) { el.innerHTML = '<div class="empty-state">No goals yet — add your first one below</div>'; return; }
-      el.innerHTML = state.milestones.map(m =>
-        `<div class="milestone-item ${m.done ? 'done' : ''}" onclick="toggleMilestone(${m.id})">
-          <div class="m-check">${m.done ? '✓' : ''}</div>
-          <div class="m-text">${m.text}</div>
-        </div>`
-      ).join('');
-    }
-
-    function setFrom(n) {
-      state.noteFrom = n;
-      const n1 = document.getElementById('name1').value || 'You';
-      const n2 = document.getElementById('name2').value || 'Partner';
-      document.getElementById('from-btn-1').textContent = n1;
-      document.getElementById('from-btn-2').textContent = n2;
-      document.getElementById('from-btn-1').classList.toggle('active', n === 1);
-      document.getElementById('from-btn-2').classList.toggle('active', n === 2);
-    }
-
-    function sendNote() {
-      const text = document.getElementById('note-text').value.trim();
-      if (!text) return;
-      const n1 = document.getElementById('name1').value || 'You';
-      const n2 = document.getElementById('name2').value || 'Partner';
-      state.notes.unshift({
-        ts: Date.now(),
-        from: state.noteFrom === 1 ? n1 : n2,
-        text
-      });
-      save('olw_notes', state.notes);
-      document.getElementById('note-text').value = '';
-      renderNotes();
-    }
-
-    function renderNotes() {
-      const el = document.getElementById('notes-list');
-      if (!state.notes.length) {
-        el.innerHTML = '<div class="empty-state">No notes yet — send the first one</div>';
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      const email = session.user.email;
+      if (!ALLOWED_EMAILS.includes(email)) {
+        document.getElementById('login-error').style.display = 'block';
+        await supabase.auth.signOut();
         return;
       }
-      el.innerHTML = state.notes.slice(0, 30).map(n =>
-        `<div class="note-card">
-          <div class="note-from">from ${n.from}</div>
-          <div class="note-body">${n.text}</div>
-          <div class="note-time">${fmt(n.ts)}</div>
-        </div>`
-      ).join('');
+      currentUser = session.user;
+      currentName = NAMES[email];
+      initApp();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app-screen').style.display = 'none';
+    }
+  });
+
+  function initApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('today-date').textContent = fmt(Date.now());
+    document.getElementById('user-chip').textContent = 'hi, ' + currentName.toLowerCase();
+
+    const isAmbika = currentUser.email === 'ambikabanerjee17@gmail.com';
+    document.getElementById('ambika-you').style.display = isAmbika ? 'inline-block' : 'none';
+    document.getElementById('anuja-you').style.display = !isAmbika ? 'inline-block' : 'none';
+
+    lockOtherMoodCard();
+    updateNoteToLabel();
+    loadMoods();
+    loadJournal();
+    loadMilestones();
+    loadNotes();
+  }
+
+  function mySlug() {
+    return currentUser.email === 'ambikabanerjee17@gmail.com' ? 'ambika' : 'anuja';
+  }
+
+  function lockOtherMoodCard() {
+    const me = mySlug();
+    const other = me === 'ambika' ? 'anuja' : 'ambika';
+    document.querySelectorAll('#moods-' + other + ' button').forEach(b => b.disabled = true);
+    document.getElementById('note-' + other).disabled = true;
+    document.getElementById('note-' + other).placeholder = 'waiting for ' + (other === 'ambika' ? 'Ambika' : 'Anuja') + '...';
+  }
+
+  function updateNoteToLabel() {
+    const partner = NAMES[PARTNER_EMAIL[currentUser.email]];
+    document.getElementById('note-to-label').textContent = 'To: ' + partner;
+  }
+
+  function showTab(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // MOOD
+  function selectMood(person, emoji) {
+    if (person !== mySlug()) return;
+    selectedMood[person] = emoji;
+    document.querySelectorAll('#moods-' + person + ' button').forEach(b => {
+      b.classList.toggle('selected', b.textContent === emoji);
+    });
+  }
+
+  async function saveMood() {
+    const me = mySlug();
+    const btn = document.getElementById('mood-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const today = new Date().toISOString().split('T')[0];
+    const { error } = await supabase.from('moods').upsert({
+      date: today,
+      person: me,
+      emoji: selectedMood[me] || '–',
+      note: document.getElementById('note-' + me).value
+    }, { onConflict: 'date,person' });
+
+    btn.disabled = false;
+    btn.textContent = 'Save today\'s mood';
+    if (error) { showToast('Could not save. Try again.'); return; }
+    document.getElementById('note-' + me).value = '';
+    selectedMood[me] = null;
+    document.querySelectorAll('#moods-' + me + ' button').forEach(b => b.classList.remove('selected'));
+    showToast('Mood saved!');
+    loadMoods();
+  }
+
+  async function loadMoods() {
+    const { data } = await supabase.from('moods').select('*').order('date', { ascending: false }).limit(28);
+    if (!data) return;
+
+    // Show today's saved moods in the cards
+    const today = new Date().toISOString().split('T')[0];
+    ['ambika','anuja'].forEach(p => {
+      const entry = data.find(d => d.date === today && d.person === p);
+      if (entry && p !== mySlug()) {
+        const btns = document.querySelectorAll('#moods-' + p + ' button');
+        btns.forEach(b => b.classList.toggle('selected', b.textContent === entry.emoji));
+        document.getElementById('note-' + p).value = entry.note || '';
+      }
+    });
+
+    // History: group by date
+    const byDate = {};
+    data.forEach(d => {
+      if (!byDate[d.date]) byDate[d.date] = {};
+      byDate[d.date][d.person] = d;
+    });
+    const el = document.getElementById('mood-history');
+    const dates = Object.keys(byDate).sort().reverse().slice(0, 10);
+    if (!dates.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<h3>Recent days</h3>' + dates.map(date => {
+      const a = byDate[date].ambika;
+      const n = byDate[date].anuja;
+      const notes = [a?.note, n?.note].filter(Boolean).join(' · ');
+      return `<div class="history-row">
+        <span class="h-day">${fmt(new Date(date + 'T12:00:00'))}</span>
+        <span class="h-moods">${a?.emoji || '–'}${n?.emoji || '–'}</span>
+        <span class="h-note">${notes}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // JOURNAL
+  async function saveJournal() {
+    const t = document.getElementById('journal-text').value.trim();
+    const i = document.getElementById('improve-text').value.trim();
+    if (!t && !i) return;
+    const { error } = await supabase.from('journal').insert({
+      author: mySlug(),
+      thoughts: t,
+      improve: i
+    });
+    if (error) { showToast('Could not save. Try again.'); return; }
+    document.getElementById('journal-text').value = '';
+    document.getElementById('improve-text').value = '';
+    showToast('Entry saved!');
+    loadJournal();
+  }
+
+  async function loadJournal() {
+    const { data } = await supabase.from('journal').select('*').order('created_at', { ascending: false }).limit(10);
+    if (!data) return;
+    const el = document.getElementById('journal-past');
+    if (!data.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<h3>Past entries</h3>' + data.map(e =>
+      `<div class="past-entry">
+        <div class="e-date">${fmt(new Date(e.created_at))} · ${e.author === 'ambika' ? 'Ambika' : 'Anuja'}</div>
+        ${e.thoughts ? `<div class="e-text">${e.thoughts}</div>` : ''}
+        ${e.improve ? `<div class="e-improve">To improve: ${e.improve}</div>` : ''}
+      </div>`
+    ).join('');
+  }
+
+  // MILESTONES
+  async function addMilestone() {
+    const val = document.getElementById('milestone-input').value.trim();
+    if (!val) return;
+    const { error } = await supabase.from('milestones').insert({ text: val, done: false, added_by: mySlug() });
+    if (error) { showToast('Could not add. Try again.'); return; }
+    document.getElementById('milestone-input').value = '';
+    loadMilestones();
+  }
+
+  async function toggleMilestone(id, current) {
+    await supabase.from('milestones').update({ done: !current }).eq('id', id);
+    loadMilestones();
+  }
+
+  async function loadMilestones() {
+    const { data } = await supabase.from('milestones').select('*').order('created_at', { ascending: true });
+    if (!data) return;
+    const el = document.getElementById('milestones-list');
+    if (!data.length) { el.innerHTML = '<div class="empty-state">No goals yet — add your first one below</div>'; return; }
+    el.innerHTML = data.map(m =>
+      `<div class="milestone-item ${m.done ? 'done' : ''}" onclick="toggleMilestone(${m.id}, ${m.done})">
+        <div class="m-check">${m.done ? '✓' : ''}</div>
+        <div class="m-text">${m.text}</div>
+      </div>`
+    ).join('');
+  }
+
+  // LOVE NOTES
+  async function sendNote() {
+    const text = document.getElementById('note-text').value.trim();
+    if (!text) return;
+    const btn = document.getElementById('send-note-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    const toEmail = PARTNER_EMAIL[currentUser.email];
+    const fromName = currentName;
+
+    const { error } = await supabase.from('notes').insert({
+      from_person: mySlug(),
+      from_name: fromName,
+      to_email: toEmail,
+      message: text
+    });
+
+    if (error) {
+      showToast('Could not send. Try again.');
+      btn.disabled = false;
+      btn.textContent = 'Send note ✉';
+      return;
     }
 
-    // init
-    renderMoods();
-    renderJournal();
-    renderMilestones();
-    renderNotes();
-    setFrom(1);
-  </script>
+    // Trigger email via Supabase Edge Function
+    try {
+      await supabase.functions.invoke('send-note-email', {
+        body: { fromName, toEmail, message: text }
+      });
+    } catch(e) {
+      // email failure is non-blocking
+    }
+
+    document.getElementById('note-text').value = '';
+    btn.disabled = false;
+    btn.textContent = 'Send note ✉';
+    showToast('Note sent to ' + NAMES[toEmail] + '!');
+    loadNotes();
+  }
+
+  async function loadNotes() {
+    const { data } = await supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(30);
+    if (!data) return;
+    const el = document.getElementById('notes-list');
+    if (!data.length) { el.innerHTML = '<div class="empty-state">No notes yet — send the first one</div>'; return; }
+    el.innerHTML = data.map(n =>
+      `<div class="note-card">
+        <div class="note-from">from ${n.from_name}</div>
+        <div class="note-body">${n.message}</div>
+        <div class="note-time">${fmt(new Date(n.created_at))}</div>
+      </div>`
+    ).join('');
+  }
+</script>
 </body>
 </html>
